@@ -173,66 +173,55 @@ export class WhatsAppController{
 
     initEvents(){
 
-        this.el.inputSearchContacts.on('keyup', e=>{
-            if(this.el.inputSearchContacts.value.length > 0){
-                this.el.inputSearchContacts.hide()
-            }else{
-                this.el.inputSearchContacts.show()
-            }
-            this._user.getContacts(this.el.inputSearchContacts.value)
-        })
+        //Botões do lado esquerdo superior
 
+        //Clicar na minha foto
         this.el.myPhoto.on('click', e=>{
             this.closeAllLeftPanel()
             this.el.panelEditProfile.show()
             setTimeout(()=>{ //delay para não atrapalhar o deslize do painel
-                this.el.panelEditProfile.addClass('open') //abre o perfil
+                this.el.panelEditProfile.addClass('open') //abre o painel de perfil
             }, 300)
         })
 
-        this.el.btnClosePanelEditProfile.on('click', e=>{
-            this.el.panelEditProfile.removeClass('open') //fecha o perfil
-        })
-
+        //Abrir adicionar contato
         this.el.btnNewContact.on('click', e=>{
+
             this.closeAllLeftPanel()
+
             this.el.panelAddContact.show()
-            setTimeout(()=>{ //delay para não atrapalhar o deslize do painel
+            setTimeout(()=>{ //delay de 300 milisegundos para não atrapalhar o deslize do painel
+
                 this.el.panelAddContact.addClass('open') //abre um novo contato
             }, 300) 
         })
 
+        //Fechar painél de adicionar contato
         this.el.btnClosePanelAddContact.on('click', e=>{
             this.el.panelAddContact.removeClass('open')
         })
 
-        this.el.photoContainerEditProfile.on('click', e=>{ //abre a janela para selecionar um arquivo para a foto
-            this.el.inputProfilePhoto.click()
-        })
-        //Atualizar foto do perfil
-        this.el.inputProfilePhoto.on('change', e=>{
+        //Fechar painel de edição de perfil
+        this.el.btnClosePanelEditProfile.on('click', e=>{
+            this.el.panelEditProfile.removeClass('open') //fecha o painel de perfil
+        }) 
 
-            if(this.el.inputProfilePhoto.files.length > 0){
-                let file = this.el.inputProfilePhoto.files[0]
-
-                Upload.send(file, this._user.email).then(snapshot =>{
-                    this._user.photo = snapshot.downloadURL
-                    this._user.save().then(()=>{
-                        this.el.btnClosePanelEditProfile.click()
-                    })
-                })
-            }
+        //Subir arquivo de foto
+        this.el.photoContainerEditProfile.on('click', e=>{
+            this.el.inputProfilePhoto.click() //abre a janela para selecionar um arquivo para a foto
         })
 
+        //Escreve nome no perfil
         this.el.inputNamePanelEditProfile.on('keypress', e=>{ //quando estiver digitando o campo do nome
             if(e.key === 'Enter'){
                 e.preventDefault()
-                this.el.btnSavePanelEditProfile.click()
+                this.el.btnSavePanelEditProfile.click() //botão de salvar
             }
         })
-        //quando clicar na setinha de enviar o nome do perfil
+
+        //Salvar edição de nome do perfil
         this.el.btnSavePanelEditProfile.on('click', e=>{ 
-            
+    
             this.el.btnSavePanelEditProfile.disabled = true //trava o botão
             this._user.name = this.el.inputNamePanelEditProfile.innerHTML //quando trocar o nome
             this._user.save().then(()=>{ //salva a alteração no firebase
@@ -240,9 +229,10 @@ export class WhatsAppController{
             })
         })
 
-        //botão adicionar novo contato
+        //Adicionar novo contato
         this.el.formPanelAddContact.on('submit', e=>{
             e.preventDefault()
+
             let formData = new FormData(this.el.formPanelAddContact) //formata os elementos do formulário
 
             let contact = new User(formData.get('email')) //pega o novo usuário
@@ -268,31 +258,41 @@ export class WhatsAppController{
             })
         })
 
+        //Lista de contatos/Abrir uma conversa
         this.el.contactsMessagesList.querySelectorAll('.contact-item').forEach(item=>{//procura dentro da lista de contatos, um contato
+
             item.on('click', e=>{ //acessa um contato/conversa
-                this.el.home.hide()
-                this.el.main.css({
+                this.el.home.hide() //oculta o menu inicial
+                this.el.main.css({ //oculta o menu inicial
                     display: 'flex'
                 })
             })
         })
-        this.el.btnAttach.on('click', e=>{ //abrir menu de conversa
-            e.stopPropagation()
+
+        //Clips = abrir opções de carregar arquivos
+        this.el.btnAttach.on('click', e=>{ //abrir menu
+            
+            e.stopPropagation()//para a propagação de eventos nos elementos pai
+            
             this.el.menuAttach.addClass('open')
+            
             document.addEventListener('click', this.closeMenuAttach.bind(this)) //quando clicar chama a função, mas seu escopo é o this.el ainda
         })
 
+        //Galeria
         this.el.btnAttachPhoto.on('click', e=>{
             this.el.inputPhoto.click()
-
         })
+        //Enviar foto
         this.el.inputPhoto.on('change', e=>{
-            [...this.el.inputPhoto.files].forEach(file =>{
+
+            [...this.el.inputPhoto.files].forEach(file =>{//array dos arquivos em ordem
 
                 Message.sendImage(his._contactActive.chatId, this._user.email, file)
             })
         })
 
+        //Camera
         this.el.btnAttachCamera.on('click', e=>{ //abrir camera
             this.closeAllMainPanel()
             this.el.panelCamera.addClass('open')
@@ -302,12 +302,14 @@ export class WhatsAppController{
             this._camera = new CameraController(this.el.videoCamera) //instância do objeto 
             
         })
-        this.el.btnClosePanelCamera.on('click', e=>{ //fechar camera
+        //Fechar camera
+        this.el.btnClosePanelCamera.on('click', e=>{
             this.closeAllMainPanel()
             this.el.panelMessagesContainer.show()
             this._camera.stop()
         })
-        this.el.btnTakePicture.on('click', e=>{ //tirar foto
+        //Capturar foto
+        this.el.btnTakePicture.on('click', e=>{
             let dataURL = this._camera.takePicture()
             this.el.pictureCamera.src = dataURL
             this.el.pictureCamera.show()
@@ -316,15 +318,6 @@ export class WhatsAppController{
             this.el.containerTakePicture.hide()
             this.el.containerSendPicture.show()
         })
-
-        this.el.btnReshootPanelCamera.on('click', e=>{
-            this.el.pictureCamera.hide()
-            this.el.videoCamera.show()
-            this.el.btnReshootPanelCamera.hide() //mostra botão de tirar novamente
-            this.el.containerTakePicture.show()
-            this.el.containerSendPicture.hide()
-        })
-
         //Enviar foto da camera
         this.el.btnSendPicture.on('click', e=>{
 
@@ -367,7 +360,16 @@ export class WhatsAppController{
                 })
             }            
         })
+        //
+        this.el.btnReshootPanelCamera.on('click', e=>{
+            this.el.pictureCamera.hide()
+            this.el.videoCamera.show()
+            this.el.btnReshootPanelCamera.hide() //mostra botão de tirar novamente
+            this.el.containerTakePicture.show()
+            this.el.containerSendPicture.hide()
+        })
 
+        //Documentos
         this.el.btnAttachDocument.on('click', e=>{ //abrir documentos
             this.closeAllMainPanel()
             this.el.panelDocumentPreview.addClass('open')
@@ -376,7 +378,12 @@ export class WhatsAppController{
             })
             this.el.inputDocument.click()
         })
-        //capturar o arquivo 
+        //Fechar documentos
+        this.el.btnClosePanelDocumentPreview.on('click', e=>{ 
+            this.closeAllMainPanel()
+            this.el.panelMessagesContainer.show()
+        })
+        //Pegar e visualizar o documento 
         this.el.inputDocument.on('change', e=>{
 
             if(this.el.inputDocument.files.length){
@@ -421,12 +428,6 @@ export class WhatsAppController{
                 })
             }
         })
-
-        this.el.btnClosePanelDocumentPreview.on('click', e=>{ //fechar documentos
-            this.closeAllMainPanel()
-            this.el.panelMessagesContainer.show()
-        })
-
         //Enviar um documento
         this.el.btnSendDocument.on('click', e=>{
             let file = this.el.inputDocument.files[0]
@@ -444,6 +445,7 @@ export class WhatsAppController{
             this.el.btnClosePanelDocumentPreview.click()
         })
 
+        //Contato
         this.el.btnAttachContact.on('click', e=>{ //abrir contatos
 
             this._contactsController = new ContactsController(this.el.modalContacts, this._user)
@@ -457,12 +459,14 @@ export class WhatsAppController{
 
             this._contactsController.open()
         })
+        //Fechar o modal de Contatos
         this.el.btnCloseModalContacts.on('click', e=>{
             
             this._contactsController.close()
         })
 
-        this.el.btnSendMicrophone.on('click', e=>{ //abrir microfone
+        //Microfone
+        this.el.btnSendMicrophone.on('click', e=>{
             this.el.recordMicrophone.show()
             this.el.btnSendMicrophone.hide()
 
@@ -473,15 +477,15 @@ export class WhatsAppController{
             })
             this._microphoneController.on('recordtimer', timer=>{
                 this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer) //total do tempo
-
             })
         })
-        this.el.btnCancelMicrophone.on('click', e=>{ //cancela gravação
+        //Cancelar gravação
+        this.el.btnCancelMicrophone.on('click', e=>{ 
             this._microphoneController.stopRecorder()
             this.closeRecordMicrophone()
-
         })
-        this.el.btnFinishMicrophone.on('click', e=>{ //finaliza gravação
+        //Finalizar gravação
+        this.el.btnFinishMicrophone.on('click', e=>{
             this._microphoneController.on('recorder', (file, metadata)=>{
                 Message.sendAudio(
                     this._contactActive.chatId,
@@ -494,6 +498,33 @@ export class WhatsAppController{
             this._microphoneController.stopRecorder()
             this.closeRecordMicrophone()
         })
+
+        //Procurar contatos
+        this.el.inputSearchContacts.on('keyup', e=>{
+            if(this.el.inputSearchContacts.value.length > 0){
+                this.el.inputSearchContacts.hide()
+            }else{
+                this.el.inputSearchContacts.show()
+            }
+            this._user.getContacts(this.el.inputSearchContacts.value)
+        })
+
+        //Atualizar foto do perfil
+        this.el.inputProfilePhoto.on('change', e=>{
+
+            if(this.el.inputProfilePhoto.files.length > 0){
+                let file = this.el.inputProfilePhoto.files[0]
+
+                Upload.send(file, this._user.email).then(snapshot =>{
+                    this._user.photo = snapshot.downloadURL
+                    this._user.save().then(()=>{
+                        this.el.btnClosePanelEditProfile.click()
+                    })
+                })
+            }
+        })
+
+
 
         //EVENTOS DOS CAMPOS DE TEXTO
 
@@ -671,11 +702,13 @@ export class WhatsAppController{
         })    
     }
 
+    //Fecha todos os painéis do lado esquerdo
     closeAllLeftPanel(){
         this.el.panelAddContact.hide()
         this.el.panelEditProfile.hide()
     }
 
+    //Fecha menu de opções de envio de arquivo
     closeMenuAttach(e){
         document.removeEventListener('click', this.closeMenuAttach)
         this.el.menuAttach.removeClass('open')
@@ -684,7 +717,6 @@ export class WhatsAppController{
     closeRecordMicrophone(){
         this.el.recordMicrophone.hide()
         this.el.btnSendMicrophone.show()
-         //
     }
 
     closeAllMainPanel(){
@@ -693,6 +725,7 @@ export class WhatsAppController{
         this.el.panelCamera.removeClass('open')
     }
 
+    //Carrega todos os id em camel-case
     loadElements(){
         this.el = {}
         document.querySelectorAll('[id]').forEach(element=>{
@@ -700,56 +733,78 @@ export class WhatsAppController{
         })
     }
 
+    //Criando métodos para serem usados 
     elementsPrototype(){
+        //classe Element
+
+        //Oculta elemento
         Element.prototype.hide = function(){
             this.style.display = 'none'
-            return this //aninha vários métodos um ao lado do outro
-        }
-        Element.prototype.show = function(){
-            this.style.display = 'block'
-            return this //aninha vários métodos um ao lado do outro
-        }
-        Element.prototype.toggle = function(){
-            this.style.display = (this.style.display === 'none') ? 'block' : 'none'
-            return this //aninha vários métodos um ao lado do outro
+            return this //o return permite aninhar todos os métodos um ao lado do outro (.hide().show()...)
         }
 
-        Element.prototype.on = function(events, fn){ //receber varios eventos
-            events.split(' ').forEach(event =>{
+        //Mostra elemento
+        Element.prototype.show = function(){
+            this.style.display = 'block'
+            return this
+        }
+
+        //Se tá oculto, mostra. Se tá mostrando, oculta
+        Element.prototype.toggle = function(){
+            this.style.display = (this.style.display === 'none') ? 'block' : 'none'
+            return this
+        }
+
+        //Recebe varios eventos ao mesmo tempo
+        Element.prototype.on = function(events, fn){ //recebe o evento e função (execução)
+
+            events.split(' ').forEach(event =>{//pega os eventos separados por espaço
+
                 this.addEventListener(event, fn)
-                return this //aninha vários métodos um ao lado do outro
+                return this
             })
         }
 
+        //Atributos css
         Element.prototype.css = function(styles){
             for(let name in styles){
                 this.style[name] = styles[name]
             }
+            //recebe um objeto com configurações de css
         }
 
+        //Adiciona uma classe
         Element.prototype.addClass = function(name){
             this.classList.add(name)
         }
+
+        //Remove uma classe
         Element.prototype.removeClass = function(name){
             this.classList.remove(name)
         }
+
+        //Se não tem classe, adiciona
         Element.prototype.toggleClass = function(name){
             this.classList.toggle(name)
         }
+
+        //Se tem classe
         Element.prototype.hasClass = function(name){
             return this.classList.contain(name)
         }
 
+        //Pega os elementos e retorna em FormData
         HTMLFormElement.prototype.getForm = function(){
             return new FormData(this) //formata os campos do formulário 
         }
+
+        //Gera json
         HTMLFormElement.prototype.toJSON = function(){ //lê cada um dos campos do formulário e cria um json de mesmo nome
             let json = {}
             this.getForm().forEach((value, key)=>{
                 json[key] = value //retorna todo o formulário em formato json
             })
             return json
-
         }
     }
 }

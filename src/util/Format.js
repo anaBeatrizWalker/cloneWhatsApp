@@ -2,10 +2,13 @@ export class Format{
 
     //Faz com que os 75 ids tenham um atributo dentro de cada um deles já padronizado para o CamelCase, pronto para usar no javascript
     static getCamelCase(text){
+
+        //Div criada para ter um dataset
         let div = document.createElement('div')
 
-        div.innerHTML = `<div data-${text}="id"></div>`
+        div.innerHTML = `<div data-${text}="id"></div>` //atributo dataset
 
+        //retorna a conversão, um array com todas as chaves, dataset do filho da div criada trazendo somente o primeiro
         return Object.keys(div.firstChild.dataset)[0]
     }
 
