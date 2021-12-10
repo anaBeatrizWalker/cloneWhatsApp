@@ -1,18 +1,20 @@
 export class CameraController{
     constructor(videoEl){
+
         this._videoEl = videoEl
 
         //API
-        navigator.mediaDevices.getUserMedia({
-            video: true
+        navigator.mediaDevices.getUserMedia({ //acessa uma media do usuário
+            video: true //a media solicitada
+
         }).then(stream =>{
 
             this._stream  = stream
-            this._videoEl.src = URL.createObjectURL(stream)
+            this._videoEl.src = URL.createObjectURL(stream)//converte o arquivo em um link para conseguir lê-lo
             this._videoEl.play()
 
         }).catch(err=>{
-            console.error(err)
+            console.error(err)//se não der acesso a camera, mostra o erro
         })
     }
     stopCamera(){
