@@ -517,9 +517,12 @@ export class WhatsAppController{
 
             this._microphoneController = new MicrophoneController()
 
+            //Quando estiver disponivel para ser gravado, começa
             this._microphoneController.on('ready', audio=>{
                 this._microphoneController.startRecorder()
             })
+
+            //Inicia o timer
             this._microphoneController.on('recordtimer', timer=>{
                 this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer) //tempo de gravação formatado
             })
@@ -529,7 +532,7 @@ export class WhatsAppController{
             this._microphoneController.stopRecorder()
             this.closeRecordMicrophone()
         })
-        //Finalizar gravação
+        //Finalizar e Enviar gravação
         this.el.btnFinishMicrophone.on('click', e=>{
             this._microphoneController.on('recorder', (file, metadata)=>{
                 Message.sendAudio(
