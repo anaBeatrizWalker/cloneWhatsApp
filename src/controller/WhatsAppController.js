@@ -12,6 +12,7 @@ import { Upload } from '../util/Upload'
 
 export class WhatsAppController{
     constructor(){
+
         this._firebase = new Firebase() //FALTA IMPORTAR O FIREBASE - AULA 25
         this.initAuth()
         this.elementsPrototype()
@@ -52,7 +53,8 @@ export class WhatsAppController{
         }
     }
 
-    initAuth(){ //inicia a autenticação do Firebase
+    //Invoca a autenticação do Firebase
+    initAuth(){ 
         this._firebase.initAuth().then(response =>{
 
             this._user = new User(response.user.email)
