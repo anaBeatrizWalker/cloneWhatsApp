@@ -60,9 +60,8 @@ export class MicrophoneController extends ClassEvent{
                 })
                 let filename = `rec${Date.now()}.webm`//define o nome do arquivo
 
+                //Lê o arquivo para poder ser enviado
                 let audioContext = new AudioContext()
-
-                //Lê o arquivo
                 let reader = new FileReader()
                 reader.onload = e =>{
 

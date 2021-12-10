@@ -214,6 +214,20 @@ export class WhatsAppController{
         this.el.photoContainerEditProfile.on('click', e=>{
             this.el.inputProfilePhoto.click() //abre a janela para selecionar um arquivo para a foto
         })
+        //Atualizar foto do perfil
+        this.el.inputProfilePhoto.on('change', e=>{
+
+            if(this.el.inputProfilePhoto.files.length > 0){
+                let file = this.el.inputProfilePhoto.files[0]
+
+                Upload.send(file, this._user.email).then(snapshot =>{
+                    this._user.photo = snapshot.downloadURL
+                    this._user.save().then(()=>{
+                        this.el.btnClosePanelEditProfile.click()
+                    })
+                })
+            }
+        })
 
         //Escreve nome no perfil
         this.el.inputNamePanelEditProfile.on('keypress', e=>{ //quando estiver digitando o campo do nome
@@ -286,21 +300,6 @@ export class WhatsAppController{
                 this.el.inputSearchContactsPlaceholder.show()
             }
             this._user.getContacts(this.el.inputSearchContacts.value)//vai filtrando o que o usuário está digitando
-        })
-
-        //Atualizar foto do perfil
-        this.el.inputProfilePhoto.on('change', e=>{
-
-            if(this.el.inputProfilePhoto.files.length > 0){
-                let file = this.el.inputProfilePhoto.files[0]
-
-                Upload.send(file, this._user.email).then(snapshot =>{
-                    this._user.photo = snapshot.downloadURL
-                    this._user.save().then(()=>{
-                        this.el.btnClosePanelEditProfile.click()
-                    })
-                })
-            }
         })
 
         //BOTÕES DENTRO DE CONVERSA
@@ -494,7 +493,7 @@ export class WhatsAppController{
 
             if(file.type == 'application/pdf'){
 
-                Base64.toFile(base64).then(filePreview =>{
+                Base64.toFile(base64).then(filePreview =>{//converte o preview em arquivo
 
                 Message.sendDocument(this._contactActive.chatId, this._user.email, file, filePreview, this.el.infoPanelDocumentPreview.innerHTML)
             })
@@ -513,14 +512,13 @@ export class WhatsAppController{
                 Message.sendContact(
                     this._contactActive.chatId, 
                     this._user.email,
-                    contact)
+                    contact
+                )
             })
-
             this._contactsController.open()
         })
         //Fechar o modal de Contatos
         this.el.btnCloseModalContacts.on('click', e=>{
-            
             this._contactsController.close()
         })
 
@@ -548,6 +546,7 @@ export class WhatsAppController{
         })
         //Finalizar e Enviar gravação
         this.el.btnFinishMicrophone.on('click', e=>{
+
             this._microphoneController.on('recorder', (file, metadata)=>{
                 Message.sendAudio(
                     this._contactActive.chatId,
@@ -695,6 +694,7 @@ export class WhatsAppController{
             
             }else{
                 let parent = this.el.panelMessagesContainer.querySelector('#_' + data.id).parentNode
+
                 parent.replaceChild(view, this.el.panelMessagesContainer.querySelector('#_' + data.id))
             }
             
@@ -704,12 +704,15 @@ export class WhatsAppController{
 
                 msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML
             }
+            //Se a mensagem é um contato
             if(message.type === 'contact'){
-                view.querySelector('.btn-message-send').on('click', e=>{
-                    
-                    Chat.createIfNotExists(this._user.email, message.contact.email).then(chat =>{
 
-                        let contact = new User(message.content.email)
+                view.querySelector('.btn-message-send').on('click', e=>{//Pega o botão e enviar mensagem para o contato
+                    
+                    //Cria um novo chat
+                    Chat.createIfNotExists(this._user.email, message.content.email).then(chat =>{
+
+                        let contact = new User(message.content.email)//passa o id
 
                         contact.on('datachange', data=>{
 

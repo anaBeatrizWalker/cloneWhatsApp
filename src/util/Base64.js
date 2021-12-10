@@ -4,10 +4,9 @@ export class Base64{
         let regex = /^data:(.+);base64,(.*)$/;
         let result = urlBase64.match(regex)
         return result[1]
-
     }
 
-    static toFile(urlBase64){
+    static toFile(urlBase64){//gerar o arquivo
 
         let mimeType = Base64.getMimeType(urlBase64)
         

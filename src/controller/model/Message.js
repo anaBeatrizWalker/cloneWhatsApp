@@ -196,6 +196,7 @@ export class Message extends Model{
                         </div>
                     </div>
                                 `
+            //Quando clicar no arquivo, abre em nova página
             div.on('click', e=>{
                 window.open(this.content)
             })
@@ -291,22 +292,27 @@ export class Message extends Model{
             let inputRange = div.querySelector('[type=range]')
             let audioDuration =  div.querySelector('.message-audio-duration')
 
+            //Quando o audio está pronto (dados carregados)
             audioEl.onloadeddata = e=>{
                 loadEl.hide()
                 btnPlay.show()
             }
+            //Quando tocar o botão de play
             audioEl.onplay = e=>{
                 btnPlay.hide()
                 btnPause.show()
             }
+            //Quando tocar o botão de pause
             audioEl.onpause = e=>{
                 audioDuration.innerHTML = Format.toTime(this.duration*1000)
                 btnPlay.show()
                 btnPause.hide()
             }
+            //Quando terminar o audio
             audioEl.onended = e=>{
                 audioEl.currentTime = 0
             }
+            //Quando for alterado o tempo de duração
             audioEl.ontimeupdate = e=>{
                 btnPlay.hide()
                 btnPause.hide()
@@ -326,7 +332,7 @@ export class Message extends Model{
             btnPause.on('click', e=>{
                 audioEl.pause()
             })
-
+            //Acompanha o audio sendo ouvido
             inputRange.on('change', e=>{
                 audioEl.currentTime = (inputRange * this.duration)/100
             })
@@ -367,7 +373,7 @@ export class Message extends Model{
         return Message.send(chatId, from, 'audio', '').then(msgRef=>{
 
             Message.upload(file, from).then(snapshot =>{
-                let downloadFile = snapshot.downloadURL //link do arquivo de aúdio que subiu no storage
+                let downloadFile = snapshot.downloadURL //link do arquivo de aúdio
 
                 msgRef.set({
                     content: downloadFile,
@@ -396,12 +402,14 @@ export class Message extends Model{
         Message.send(chatId, from, 'document', '').then(msgRef=>{
             
                 Message.upload(file, from).then(snapshot =>{
+
                     let downloadFile = snapshot.downloadURL
 
-                    if(filePreview){
+                    if(filePreview){//se for PDF
 
                         Message.upload(filePreview, from).then(snapshot2 =>{
-                            let downloadPreview = snapshot2.downloadURL
+
+                            let downloadPreview = snapshot2.downloadURL//salva a imagem
     
                             msgRef.set({
                                 content: downloadFile,
