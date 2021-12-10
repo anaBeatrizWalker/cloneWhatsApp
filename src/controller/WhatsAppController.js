@@ -13,6 +13,7 @@ import { Upload } from '../util/Upload'
 export class WhatsAppController{
     constructor(){
 
+        this._active = true
         this._firebase = new Firebase() //FALTA IMPORTAR O FIREBASE - AULA 25
         this.initAuth()
         this.elementsPrototype()
@@ -25,31 +26,39 @@ export class WhatsAppController{
     checkNotification(){
 
         if(typeof Notification === 'function'){
-            if(Notification.permission !== 'granted'){
+
+            if(Notification.permission !== 'granted'){//pedindo permissão
                 this.el.alertNotificationPermission.show()
+
             }else{
                 this.el.alertNotificationPermission.hide()
             }
+
             this.el.alertNotificationPermission.on('click', e=>{
-                Notification.requestPermission(permission =>{
+                Notification.requestPermission(permission =>{//pedindo permissão de enviar notificação
                     if(permission === 'granted'){
                         this.el.alertNotificationPermission.hide()
-
                     }
                 })
             })
         }
     }
 
-    notification(data){
-        if(Notification.permission === 'granted'){
-            let n = new Notification(this._contactActive.name, {
-                icon: this._contactActive.photo,
-                body: data.content 
+    notification(data){//recebe a mensagem
+
+        if(Notification.permission === 'granted' && !this._active){//só executa se tiver permitido
+
+            let n = new Notification(this._contactActive.name, {//nome do usuário ativo
+                icon: this._contactActive.photo, //foto
+                body: data.content //conteúdo da mensagem
             })
+            let sound = new Audio('./audio/alert.mp3')
+            sound.currentTime = 0
+            sound.play()
+
             setTimeout(()=>{
                 if(n) n.close()
-            }, 3000)
+            }, 3000) //fecha a notificação depois de 3 segundos
         }
     }
 
@@ -632,6 +641,13 @@ export class WhatsAppController{
                 this.el.inputText.dispatchingEvent(new Event('keyup')) //força o evento de keyup acontecer para quando escolher um emoji, desaparece o placeholder
             })
         })
+
+        window.addEventListener('focus', e=>{
+            this._active = true
+        })
+        window.addEventListener('blur', e=>{
+            this._active = false
+        })
     }
     //Ativa o chat do contato selecionado
     setActiveChats(contact){
@@ -657,6 +673,8 @@ export class WhatsAppController{
         }
         this.el.panelMessagesContainer.innerHTML = ''
 
+        this._messageRceived = []
+
         Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(docs=>{//ordena pela data.em tempo real
 
             //Mexendo no scroll
@@ -673,10 +691,12 @@ export class WhatsAppController{
 
                 let me = (data.from === this._user.email)
 
-                if(!me && this._messageRceived.filter(id =>{ return (id === data.id).length === 'SEI LAAAA'}))
+                //Notificação de mensagem
+                if(!me && this._messageRceived.filter(id =>{ return (id === data.id).length === 0})){
 
-                this.notification(data)
-                this._messageRceived.push(data.id)
+                    this.notification(data)
+                    this._messageRceived.push(data.id)
+                }
             })
                 
             let view = message.getViewElement(me)
