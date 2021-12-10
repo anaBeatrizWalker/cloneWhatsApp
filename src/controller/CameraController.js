@@ -18,20 +18,27 @@ export class CameraController{
         })
     }
     stopCamera(){
-        this._stream.getTracks().forEach(track =>{
-            track.stop()
+        this._stream.getTracks().forEach(track =>{//pega cada trilha/trilha de informação (tanto vídeo e áudio)
+            track.stop()//para cada faixa
         })
     }
 
-    takePicture(mimeType = 'image/png'){
+    takePicture(mimeType = 'image/png'){//tipo da imagem
 
-        let canvas = document.createElement('canvas')
-        canvas.setAttribute('height', this._videoEl.videoHeight)
+        let canvas = document.createElement('canvas') //cria a paleta, área de desenho
+
+        //define a altura e largura da paleta
+        canvas.setAttribute('height', this._videoEl.videoHeight)//atribui o próprio tamanho do vídeo
         canvas.setAttribute('width', this._videoEl.videoWidth)
         
         let context = canvas.getContext('2d')
+
         context.drawImage(this._videoEl, 0, 0, canvas.width, canvas.height)
-        return canvas.toDataURL(mimeType)
+        //origem: desenha o que ta acontecendo no vídeo (o momento), 
+        //posições: começa do início (0 do topo e 0 da esquerda), 
+        //destino do x e y, até onde vai o desenho (a própria altura e largura definida no canvas)
+
+        return canvas.toDataURL(mimeType) //converte em base64
 
     }
 }

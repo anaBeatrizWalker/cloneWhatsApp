@@ -338,12 +338,24 @@ export class WhatsAppController{
         //Capturar foto
         this.el.btnTakePicture.on('click', e=>{
             let dataURL = this._camera.takePicture()
-            this.el.pictureCamera.src = dataURL
-            this.el.pictureCamera.show()
-            this.el.videoCamera.hide()
+
+            this.el.pictureCamera.src = dataURL //a imagem recebe o link base64
+
+            this.el.pictureCamera.show() //mostra a foto
+
+            this.el.videoCamera.hide() //oculta o formato video
+
             this.el.btnReshootPanelCamera.show() //mostra botão de tirar novamente
             this.el.containerTakePicture.hide()
             this.el.containerSendPicture.show()
+        })
+        //Tentar novamente
+        this.el.btnReshootPanelCamera.on('click', e=>{
+            this.el.pictureCamera.hide()
+            this.el.videoCamera.show()
+            this.el.btnReshootPanelCamera.hide()
+            this.el.containerTakePicture.show()
+            this.el.containerSendPicture.hide()
         })
         //Enviar foto da camera
         this.el.btnSendPicture.on('click', e=>{
@@ -387,14 +399,6 @@ export class WhatsAppController{
                 })
             }            
         })
-        //
-        this.el.btnReshootPanelCamera.on('click', e=>{
-            this.el.pictureCamera.hide()
-            this.el.videoCamera.show()
-            this.el.btnReshootPanelCamera.hide() //mostra botão de tirar novamente
-            this.el.containerTakePicture.show()
-            this.el.containerSendPicture.hide()
-        })
 
         //Documentos
         this.el.btnAttachDocument.on('click', e=>{ //abrir documentos
@@ -405,21 +409,15 @@ export class WhatsAppController{
             })
             this.el.inputDocument.click()
         })
-        //Fechar documentos
-        this.el.btnClosePanelDocumentPreview.on('click', e=>{ 
-            this.closeAllMainPanel()
-            this.el.panelMessagesContainer.show()
-        })
         //Pegar e visualizar o documento 
         this.el.inputDocument.on('change', e=>{
 
+            //Se tem algum arquivo, 
             if(this.el.inputDocument.files.length){
-
                 this.el.panelDocumentPreview.css({
                     'height': '1%'
                 })
-
-                let file = this.el.inputDocument.files[0]
+                let file = this.el.inputDocument.files[0]//pega o primeiro
 
                 this._documentPreviewController = new DocumentPreviewController(file)
                 this._documentPreviewController.getPreviewData().then(result=>{
@@ -455,6 +453,12 @@ export class WhatsAppController{
                 })
             }
         })
+        //Fechar documentos
+        this.el.btnClosePanelDocumentPreview.on('click', e=>{ 
+            this.closeAllMainPanel()
+            this.el.panelMessagesContainer.show()
+        })
+
         //Enviar um documento
         this.el.btnSendDocument.on('click', e=>{
             let file = this.el.inputDocument.files[0]
