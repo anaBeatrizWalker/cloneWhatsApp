@@ -14,10 +14,10 @@ export class Chat extends Model{
     set timeStamp(value) { this._data.timeStamp = value}
 
     static getRef(){ //acessa a seção de chats no firebase
-        
         return Firebase.db.collection('/chats')
     }
 
+    //Criando um chat novo
     static create(meEmail, contactEmail){
         return new Promise((s,f)=>{
 
@@ -28,19 +28,22 @@ export class Chat extends Model{
         Chat.getRef().add({
             users,
             timeStamp: new Date()
+
         }).then(doc =>{
             Chat.getRef().doc(doc.id).get().then(chat=>{
                 s(chat)
+
             }).catch(err =>{ f(err) })
-            }).catch(err =>{ f(err) })
+        }).catch(err =>{ f(err) })
         })
     }
 
+    //Procura as conversas
     static find(meEmail, contactEmail){
         return Chat.getRef()
-            .where(btoa(meEmail),'==', true )
+            .where(btoa(meEmail),'==', true )//quem ta procurando, o que faz, resultado
             .where(btoa(contactEmail),'==', true )
-            .get()
+            .get()//quando encontrar, retorna a conversa
     }
 
     static createIfNotExists(meEmail, contactEmail){
@@ -52,7 +55,7 @@ export class Chat extends Model{
                     Chat.create(meEmail, contactEmail).then(chat =>{
                         s(chat)
                     })
-                }else{
+                }else{//se já tinha chat
                     chats.forEach(chat =>{
                         s(chat)
                     })
@@ -60,9 +63,4 @@ export class Chat extends Model{
             })
         })
     }
-
-
-
-
-
 }

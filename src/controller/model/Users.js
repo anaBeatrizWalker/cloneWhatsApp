@@ -32,7 +32,6 @@ export class User extends Model{
                 this.fromJSON(doc.data()) //pega os dados do documento em json
                 
                 s(doc) //deu certo a promessa, devolve o documento
-            
             })
         })
     }
@@ -43,11 +42,10 @@ export class User extends Model{
 
     static getRef(){
         return Firebase.db().collection('/users') //referência dos usuários. Pega no banco as coleções de users
-
     }
 
     static findByEmail(email){ //busca pelo email
-        return User.getRef().doc(email) //dentro da coleção users, retorna um documento de acordo com o ID
+        return User.getRef().doc(email) //dentro da coleção users, retorna um documento de acordo com o ID (que é o email)
 
     }
 
@@ -67,13 +65,16 @@ export class User extends Model{
         return new Promise((s,f)=>{
 
             User.getContactsRef(this.email).where('name', '>=', filter).onSnapshot(docs =>{ //chama a referência no firebase e recebe vários docs
+
                 let contacts = []
                 docs.forEach(doc =>{ //pra cada documento
+
                     let data = doc.data() //dados de doc
-                    data.id = doc.id
-                    contacts.push(data) //adiciona os dados no arraya contacts
+                    data.id = doc.id //recebe o id
+                    contacts.push(data) //adiciona os dados no array contacts
                 })
                 this.trigger('contactschange', docs) //para quem tiver esperando uma mudança dos contatos
+                
                 s(contacts)
             })
         })

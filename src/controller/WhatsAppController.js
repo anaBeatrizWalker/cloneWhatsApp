@@ -57,16 +57,17 @@ export class WhatsAppController{
     initAuth(){ 
         this._firebase.initAuth().then(response =>{
 
-            this._user = new User(response.user.email)
+            this._user = new User(response.user.email)//usuário com email como id
 
-            this._user.on('datachange', data =>{ //ouve um evento, a mudança de dados
+            this._user.on('datachange', data =>{ //ouve a mudança dos dados
 
                 //toda vez que receber os dados de usuário, faz:
-                document.querySelector('title').innerHTML = data.name + ' - WhatsApp Clone' //coloca um título no navegador
+                document.querySelector('title').innerHTML = data.name + ' - WhatsApp Clone' //coloca o nome do user no navegador
 
                 this.el.inputNamePanelEditProfile.innerHTML = data.name //recebe o nome do usuário
-
-                if(data.photo){ //se tem foto
+                
+                //se tem foto
+                if(data.photo){ 
                     let photo = this.el.imgPanelEditProfile
                     photo.src = data.photo
                     photo.show() //mostra a foto
@@ -76,13 +77,13 @@ export class WhatsAppController{
                     photo2.src = data.photo
                     photo2.show()
                 }
-                this.initContacts() 
+                this.initContacts()//busca os contatos do usuário para mostrar na tela
             })
             this._user.name = response.user.displayName
             this._user.email = response.user.email
             this._user.photo = response.user.photoURL
 
-            this._user.save().then(()=>{
+            this._user.save().then(()=>{//salva os dados
                 //quando já salvou os dados no firebase, mostra a tela do whats
                 display: 'flex'
             })
@@ -99,7 +100,9 @@ export class WhatsAppController{
     initContacts(){//busca os contatos do usuário autenticado
 
         this._user.on('contactschange', docs=>{
+
             this.el.contactsMessagesList.innerHTML = '' //limpa a lista de contatos
+
             docs.forEach(doc=>{ //para cada contato/documento
                 
                 let contact = doc.data() //extrai os dados de contato/documento
@@ -161,15 +164,14 @@ export class WhatsAppController{
                     img.src = contact.photo //pega o link da foto do contato
                     img.show() //exibe
                 }
-                div.on('click', e=>{
 
-                    this.setActiveChats(contact)
-            
+                //quando clicar em um contato
+                div.on('click', e=>{
+                    this.setActiveChats(contact)//ativa o chat do contato 
                 })
                 this.el.contactsMessagesList.appendChild(div)
             })
         })
-
         this._user.getContacts()
     }
 
@@ -225,8 +227,11 @@ export class WhatsAppController{
         this.el.btnSavePanelEditProfile.on('click', e=>{ 
     
             this.el.btnSavePanelEditProfile.disabled = true //trava o botão
-            this._user.name = this.el.inputNamePanelEditProfile.innerHTML //quando trocar o nome
+
+            this._user.name = this.el.inputNamePanelEditProfile.innerHTML //pega o nome
+
             this._user.save().then(()=>{ //salva a alteração no firebase
+
             this.el.btnSavePanelEditProfile.disabled = false //depois que salva, destrava o botão
             })
         })
@@ -235,21 +240,23 @@ export class WhatsAppController{
         this.el.formPanelAddContact.on('submit', e=>{
             e.preventDefault()
 
-            let formData = new FormData(this.el.formPanelAddContact) //formata os elementos do formulário
+            let formData = new FormData(this.el.formPanelAddContact) //elementos formatados do formulário
 
             let contact = new User(formData.get('email')) //pega o novo usuário
+
             contact.on('datachange', data=>{ //carrega os dados desse novo usuário
+
                 if(data.name){ //se achou o usuário
 
                     Chat.createIfNotExists(this._user.email, contact.email).then(chat =>{
 
-                        contact.chatId = chat.id
-                        this._user.chatId = chat.id
+                        contact.chatId = chat.id //recebe um id do chat no outro usuário
+                        this._user.chatId = chat.id//recebe o mesmo id
 
-                        contact.addContact(this._user)
+                        contact.addContact(this._user)//se não existir o contato, adiciona criando o chat e passando o id
                         
                         this._user.addContact(contact).then(()=>{
-                            this.el.btnClosePanelAddContact.click() //força um para fechar o painel
+                            this.el.btnClosePanelAddContact.click() //força um click para fechar o painel
                             console.info('Contato adicionado.')
                         })
                     })
@@ -274,11 +281,11 @@ export class WhatsAppController{
         //Procurar contatos
         this.el.inputSearchContacts.on('keyup', e=>{
             if(this.el.inputSearchContacts.value.length > 0){
-                this.el.inputSearchContacts.hide()
+                this.el.inputSearchContactsPlaceholder.hide()
             }else{
-                this.el.inputSearchContacts.show()
+                this.el.inputSearchContactsPlaceholder.show()
             }
-            this._user.getContacts(this.el.inputSearchContacts.value)
+            this._user.getContacts(this.el.inputSearchContacts.value)//vai filtrando o que o usuário está digitando
         })
 
         //Atualizar foto do perfil
@@ -317,7 +324,7 @@ export class WhatsAppController{
 
             [...this.el.inputPhoto.files].forEach(file =>{//array dos arquivos em ordem
 
-                Message.sendImage(his._contactActive.chatId, this._user.email, file)
+                Message.sendImage(this._contactActive.chatId, this._user.email, file)
             })
         })
 
@@ -364,10 +371,14 @@ export class WhatsAppController{
 
             this.el.btnSendPicture.disabled = true
 
-            let regex = /^data:(.+);base64,(.*)$/;
-            let result = this.el.pictureCamera.src.match(regex)
-            let mimeType = result[1]
+            let regex = /^data:(.+);base64,(.*)$/;//encontra o padrão data:image/pnh;base64,e o resto
+
+            let result = this.el.pictureCamera.src.match(regex)//quando encontrar o padrão
+
+            let mimeType = result[1]//pega o base64
+
             let ext = mimeType.split('/')[1]
+
             let filename = `camera${Date.now()}.${ext}`
 
             let picture = new Image()
@@ -379,6 +390,7 @@ export class WhatsAppController{
                 canvas.width = picture.width
                 canvas.height = picture.height
 
+                //Invertendo a imagem
                 context.translate(picture.width, 0)
                 context.scale(-1, 1)
                 context.drawImage(picture, 0,0, canvas.width, canvas.height)
@@ -387,6 +399,7 @@ export class WhatsAppController{
                 .then(res => {return res.arrayBuffer()})
                 .then(buffer => {return new File([buffer], filename, {type: mimeType})})
                 .then(file =>{
+
                     Message.sendImage(this._contactActive.chatId, this._user.email, file)
                     this.el.btnSendPicture.disabled = false
 
@@ -474,7 +487,6 @@ export class WhatsAppController{
             this.closeAllMainPanel()
             this.el.panelMessagesContainer.show()
         })
-
         //Enviar um documento
         this.el.btnSendDocument.on('click', e=>{
             let file = this.el.inputDocument.files[0]
@@ -566,11 +578,11 @@ export class WhatsAppController{
         //Enviar mensagem
         this.el.btnSend.on('click', e=>{
             Message.send(
-                this._contactActive.chatId, 
-                this._user.email,
-                'text',
-                this.el.inputText.innerHTML)
-
+                this._contactActive.chatId, //chatId
+                this._user.email, //from
+                'text', //type
+                this.el.inputText.innerHTML //conteúdo
+            )
             this.el.inputText.innerHTML = ''
             this.el.panelEmojis.removeClass('open')
         })
@@ -622,14 +634,14 @@ export class WhatsAppController{
             })
         })
     }
-    //Ativa o painel do chat do contato selecionado
+    //Ativa o chat do contato selecionado
     setActiveChats(contact){
         
+        //Se existe um contato ativo, pega suas referencias
         if(this._contactActive){
             Message.getRef(this._contactActive.chatId).onSnapshot(()=>{})
         }
-
-        this._contactActive = contact
+        this._contactActive = contact //guarda qual é o contato ativo
         
         this.el.activeName = contact.name
         this.el.activeStatus = contact.status
@@ -646,11 +658,12 @@ export class WhatsAppController{
         }
         this.el.panelMessagesContainer.innerHTML = ''
 
-        Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(docs=>{
+        Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(docs=>{//ordena pela data.em tempo real
 
-            let scrollTop = this.el.panelMessagesContainer.scrollTop
-            let scrollTopMax = (this.el.panelMessagesContainer.scrollHeight - this.el.panelMessagesContainer.offsetHeight)
-            let autoScroll = (scrollTop >= scrollTopMax) 
+            //Mexendo no scroll
+            let scrollTop = this.el.panelMessagesContainer.scrollTop //posição atual do scroll
+            let scrollTopMax = (this.el.panelMessagesContainer.scrollHeight - this.el.panelMessagesContainer.offsetHeight) //máximo que ele pode descer
+            let autoScroll = (scrollTop >= scrollTopMax) //se é maior igual, então o scroll está embaixo
 
             docs.forEach(doc =>{
                 let data = doc.data
@@ -661,66 +674,64 @@ export class WhatsAppController{
 
                 let me = (data.from === this._user.email)
 
-                if(!me && this._messageRceived.filter(id =>{ return (id === data.id).length === 'SEI LAAAA'})
+                if(!me && this._messageRceived.filter(id =>{ return (id === data.id).length === 'SEI LAAAA'}))
 
                 this.notification(data)
                 this._messageRceived.push(data.id)
-                }
+            })
                 
-                let view = message.getViewElement(me)
+            let view = message.getViewElement(me)
 
-                if(!this.el.panelMessagesContainer.querySelector('#_' + data.id)){
+            if(!this.el.panelMessagesContainer.querySelector('#_' + data.id)){//se a conversa com o id não existe
 
-                    if(!me){
-                        doc.ref.set({
-                            status: 'read'
-                        }, {
-                            merge:true
-                        })
-                    }
-                    this.el.panelMessagesContainer.appendChild(view)
-                
-                }else{
-                    
-                    let parent = this.el.panelMessagesContainer.querySelector('#_' + data.id).parentNode
-                    parent.replaceChild(view, this.el.panelMessagesContainer.querySelector('#_' + data.id))
-                }
-                
-                if(this.el.panelMessagesContainer.querySelector('#_' + data.id) && me){
-                    let msgEl = this.el.panelMessagesContainer.querySelector('#_' + data.id)
-                    msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML
-                }
-                if(message.type === 'contact'){
-                    view.querySelector('.btn-message-send').on('click', e=>{
-                        
-                        Chat.createIfNotExists(this._user.email, message.contact.email).then(chat =>{
-
-                            let contact = new User(message.content.email)
-
-                            contact.on('datachange', data=>{
-
-                                contact.chatId = chat.id
-
-                                this._user.addContact(contact)
-
-                                this._user.chatId = chat.id
-        
-                                contact.addContact(this._user)
-                                
-                                this.setActiveChats(contact)
-                            })
-                        })
+                if(!me){
+                    doc.ref.set({
+                        status: 'read'
+                    }, {
+                        merge:true
                     })
                 }
-
-            })
-            if(autoScroll){
-
-                this.el.panelMessagesContainer.scrollTop = (this.el.panelMessagesContainer.scrollHeight - this.el.panelMessagesContainer.offsetHeight)
+                this.el.panelMessagesContainer.appendChild(view)
+            
             }else{
-                this.el.panelMessagesContainer.scrollTop = scrollTop
+                let parent = this.el.panelMessagesContainer.querySelector('#_' + data.id).parentNode
+                parent.replaceChild(view, this.el.panelMessagesContainer.querySelector('#_' + data.id))
             }
-        })    
+            
+            if(this.el.panelMessagesContainer.querySelector('#_' + data.id) && me){
+
+                let msgEl = this.el.panelMessagesContainer.querySelector('#_' + data.id)
+
+                msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML
+            }
+            if(message.type === 'contact'){
+                view.querySelector('.btn-message-send').on('click', e=>{
+                    
+                    Chat.createIfNotExists(this._user.email, message.contact.email).then(chat =>{
+
+                        let contact = new User(message.content.email)
+
+                        contact.on('datachange', data=>{
+
+                            contact.chatId = chat.id
+
+                            this._user.addContact(contact)
+
+                            this._user.chatId = chat.id
+    
+                            contact.addContact(this._user)
+                            
+                            this.setActiveChats(contact)
+                        })
+                    })
+                })
+            }
+        if(autoScroll){
+            this.el.panelMessagesContainer.scrollTop = (this.el.panelMessagesContainer.scrollHeight - this.el.panelMessagesContainer.offsetHeight)
+        }else{
+            this.el.panelMessagesContainer.scrollTop = scrollTop
+        }
+        })
     }
 
     //Fecha todos os painéis do lado esquerdo
