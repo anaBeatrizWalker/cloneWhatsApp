@@ -415,41 +415,55 @@ export class WhatsAppController{
             //Se tem algum arquivo, 
             if(this.el.inputDocument.files.length){
                 this.el.panelDocumentPreview.css({
-                    'height': '1%'
+                    'height': '1%' //corrige o css
                 })
                 let file = this.el.inputDocument.files[0]//pega o primeiro
 
                 this._documentPreviewController = new DocumentPreviewController(file)
+
                 this._documentPreviewController.getPreviewData().then(result=>{
 
-                    this.el.imgPanelDocumentPreview.src = result.src
-                    this.el.infoPanelDocumentPreview.innerHTML = result.info
+                    this.el.imgPanelDocumentPreview.src = result.src //mostra o preview da imagem
+                    this.el.infoPanelDocumentPreview.innerHTML = result.info //mostra o nome/info da imagem
+
                     this.el.imagePanelDocumentPreview.show() //pré-visualização, mostrar a imagem do documento
                     this.el.filePanelDocumentPreview.hide()
 
                     this.el.panelDocumentPreview.css({
-                        'height': 'calc(100% - 120px)'
+                        'height': 'calc(100% - 120px)'//volta o css padrão
                     })
 
                 }).catch(err=>{
 
+                    //Definindo os ícones no preview dos arquivos que não são PDF
+
                     this.el.panelDocumentPreview.css({
-                        'height': 'calc(100% - 120px)'
+                        'height': 'calc(100% - 120px)'//volta o css padrão
                     })
 
                     switch(file.type){
                         case 'application/vnd.ms-excel':
-                        case 'PEGAR DIREITONHO COMO É':
-                        
+                        case '***********EXCEL MAIS NOVO':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-xls'
+                        break;
+
+                        case 'application/vnd.ms-powerpoint':
+                        case '***********':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-ppt'
+                        break;
+
+                        case 'application/msword':
+                        case '***********':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-doc'
                         break;
 
                         default:
-                            this.el.iconPanelDocumentPreview.className = 'AQUI TBM' 
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-generic' 
                         break;
                     }
-                    this.el.filenamePanelDocumentPreview.innerHTML = file.name
-                    this.el.imagePanelDocumentPreview.hide()
-                    this.el.filePanelDocumentPreview.show()
+                    this.el.filenamePanelDocumentPreview.innerHTML = file.name //mostra o nome do arquivo
+                    this.el.imagePanelDocumentPreview.hide()//oculta a imagem preview
+                    this.el.filePanelDocumentPreview.show()//mostra o preview do arquivo
                 })
             }
         })
