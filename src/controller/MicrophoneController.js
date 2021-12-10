@@ -81,10 +81,11 @@ export class MicrophoneController extends ClassEvent{
     }
 
     startTimer(){
-        let start = Date.now()
+        let start = Date.now() //hora que iniciou
         this._recordMicrophoneInterval = setInterval(()=>{
            this.trigger('recordtimer', Date.now() - start)
         }, 100)
+        //
     }
 
     stopTimer(){

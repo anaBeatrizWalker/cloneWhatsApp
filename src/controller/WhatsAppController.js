@@ -173,7 +173,7 @@ export class WhatsAppController{
 
     initEvents(){
 
-        //Botões do lado esquerdo superior
+        //BOTÕES DO LADO SUPERIOR ESQUERDO
 
         //Clicar na minha foto
         this.el.myPhoto.on('click', e=>{
@@ -268,6 +268,33 @@ export class WhatsAppController{
                 })
             })
         })
+
+        //Procurar contatos
+        this.el.inputSearchContacts.on('keyup', e=>{
+            if(this.el.inputSearchContacts.value.length > 0){
+                this.el.inputSearchContacts.hide()
+            }else{
+                this.el.inputSearchContacts.show()
+            }
+            this._user.getContacts(this.el.inputSearchContacts.value)
+        })
+
+        //Atualizar foto do perfil
+        this.el.inputProfilePhoto.on('change', e=>{
+
+            if(this.el.inputProfilePhoto.files.length > 0){
+                let file = this.el.inputProfilePhoto.files[0]
+
+                Upload.send(file, this._user.email).then(snapshot =>{
+                    this._user.photo = snapshot.downloadURL
+                    this._user.save().then(()=>{
+                        this.el.btnClosePanelEditProfile.click()
+                    })
+                })
+            }
+        })
+
+        //BOTÕES DENTRO DE CONVERSA
 
         //Clips = abrir opções de carregar arquivos
         this.el.btnAttach.on('click', e=>{ //abrir menu
@@ -476,7 +503,7 @@ export class WhatsAppController{
                 this._microphoneController.startRecorder()
             })
             this._microphoneController.on('recordtimer', timer=>{
-                this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer) //total do tempo
+                this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer) //tempo de gravação formatado
             })
         })
         //Cancelar gravação
@@ -499,58 +526,20 @@ export class WhatsAppController{
             this.closeRecordMicrophone()
         })
 
-        //Procurar contatos
-        this.el.inputSearchContacts.on('keyup', e=>{
-            if(this.el.inputSearchContacts.value.length > 0){
-                this.el.inputSearchContacts.hide()
-            }else{
-                this.el.inputSearchContacts.show()
-            }
-            this._user.getContacts(this.el.inputSearchContacts.value)
-        })
-
-        //Atualizar foto do perfil
-        this.el.inputProfilePhoto.on('change', e=>{
-
-            if(this.el.inputProfilePhoto.files.length > 0){
-                let file = this.el.inputProfilePhoto.files[0]
-
-                Upload.send(file, this._user.email).then(snapshot =>{
-                    this._user.photo = snapshot.downloadURL
-                    this._user.save().then(()=>{
-                        this.el.btnClosePanelEditProfile.click()
-                    })
-                })
-            }
-        })
-
-
-
         //EVENTOS DOS CAMPOS DE TEXTO
 
-        //Ativar botão Enter
-        this.el.inputText.on('keypress', e=>{
-            if(e.key === 'Enter' && !e.ctrlKey){
-                e.preventDefault()
-                this.el.btnSend.click()
-
-
-            }
-        })
-
-        //Sumir com o placeholder quando começar a digitar a mensagem
+        //Sumir com o placeholder Na mensagem
         this.el.inputText.on('keyup', e=>{ //se tiver algo preenchido
             if(this.el.inputText.innerHTML.length){
                 this.el.inputPlaceholder.hide()
                 this.el.btnSendMicrophone.hide() //desaparece o botão de audio
-                this.el.btnSend.show() //mostra o botão de enviar
+                this.el.btnSend.show() //mostra o botão de enviar mensagem
             }else{
                 this.el.inputPlaceholder.show()
                 this.el.btnSendMicrophone.show()
                 this.el.btnSend.hide()
             }
-        })
-
+        }) 
         //Enviar mensagem
         this.el.btnSend.on('click', e=>{
             Message.send(
@@ -562,6 +551,13 @@ export class WhatsAppController{
             this.el.inputText.innerHTML = ''
             this.el.panelEmojis.removeClass('open')
         })
+        //Ativar botão Enter
+        this.el.inputText.on('keypress', e=>{
+            if(e.key === 'Enter' && !e.ctrlKey){
+                e.preventDefault()
+                this.el.btnSend.click()
+            }
+        })
 
         //Botão de emojis
         this.el.btnEmojis.on('click', e=>{
@@ -569,21 +565,24 @@ export class WhatsAppController{
         })
         //Escolher emoji
         this.el.panelEmojis.querySelectorAll('.emojik').forEach(emoji =>{
-            emoji.on('click', e=>{
-                let img = this.el.imgEmojiDefault.cloneNode() //clonar para poder duplicar emojis e acrescentar quantos quiser na caixa de texto
-                img.style.cssText = emoji.style.cssText
-                img.dataset.unicode = emoji.dataset.unicode
-                img.alt = emoji.dataset.unicode
 
-                img.classList.forEach(name =>{
-                    img.classList.add(name)
+            emoji.on('click', e=>{
+
+                let img = this.el.imgEmojiDefault.cloneNode() //clonar para poder duplicar emojis e acrescentar quantos quiser na caixa de texto
+
+                img.style.cssText = emoji.style.cssText //recebe a propriedade do emoji
+                img.dataset.unicode = emoji.dataset.unicode //carinha do emoji
+                img.alt = emoji.dataset.unicode //texto alternativo do emoji
+
+                img.classList.forEach(name =>{//lista todas as classes do emoji
+                    img.classList.add(name)//adiciona a variavel
                 })
 
-                let cursor = window.getSelection()
+                let cursor = window.getSelection()//pega a posição do cursor
 
-                if(!cursor.focusNode || !cursor.focusNode.id == 'input-text'){
-                    this.el.inputText.focus()
-                    cursor = window.getSelection()
+                if(!cursor.focusNode || !cursor.focusNode.id == 'input-text'){ //se o cursor não está focado E nem está focado dentro do campo input
+                    this.el.inputText.focus()//força o foco dentro do campo input
+                    cursor = window.getSelection()//pega sua posição
                 }
 
                 let range = document.createRange() //cria um intervalo de seleção
@@ -591,15 +590,14 @@ export class WhatsAppController{
                 range.deleteContents() //apaga a seleção de caracteres
 
                 let frag = document.createDocumentFragment() //cria um fragmento
-                frag.appendChild(img)
-                range.insertNode(frag)
+                frag.appendChild(img)//pega a img 
+                range.insertNode(frag)//insere o fragmento
 
                 range.setStartAfter(img) //joga o cursor pro final da mensagem
 
-                this.el.inputText.dispatchingEvent(new Event('keyup')) //força o evento de keyup acontecer para quando escolher um emoji, desparece o placeholder
+                this.el.inputText.dispatchingEvent(new Event('keyup')) //força o evento de keyup acontecer para quando escolher um emoji, desaparece o placeholder
             })
         })
-        
     }
     //Ativa o painel do chat do contato selecionado
     setActiveChats(contact){

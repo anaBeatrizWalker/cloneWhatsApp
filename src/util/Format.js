@@ -12,6 +12,7 @@ export class Format{
         return Object.keys(div.firstChild.dataset)[0]
     }
 
+    //Formatando o tempo de gravação de áudio
     static toTime(duration){
         let seconds = parseInt((duration /1000) % 60)
         let minutes = parseInt((duration / (1000 * 60) % 60))
